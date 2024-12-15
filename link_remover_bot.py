@@ -22,9 +22,6 @@ I help keep your group clean and safe by:
 - Preventing spam and scams.
 
 **➤ Add me to your group and make me an admin to activate my features.**
-
-**Developed by [@hyperosislove](https://t.me/hyperosislove)**  
-Thank you for choosing professional group management. 🚀
 """
 
 HELP_MESSAGE = """
@@ -37,6 +34,15 @@ HELP_MESSAGE = """
    - Send warnings to violators.
 
 For further assistance, contact the developer.
+"""
+
+DEVELOPER_INFO_MESSAGE = """
+👨‍💻 **Developer Info:**
+
+**Name**: Hyperosis Love  
+**Username**: [@hyperosislove](https://t.me/hyperosislove)  
+**About**: A passionate developer focused on automation and security.  
+**Contact**: Reach out to me anytime via [Telegram](https://t.me/hyperosislove).  
 """
 
 WARNING_TEMPLATE = """
@@ -55,19 +61,25 @@ async def start(client, message):
     buttons = [
         [
             InlineKeyboardButton("➕ Add me to your group", url="https://t.me/your_bot_username?startgroup=true"),
-            InlineKeyboardButton("ℹ️ Help", callback_data="help"),
+            InlineKeyboardButton("ℹ️ How to Use", callback_data="help"),
         ],
-        [InlineKeyboardButton("📞 Contact Developer", url="https://t.me/hyperosislove")],
+        [
+            InlineKeyboardButton("📞 Contact Developer", url="https://t.me/hyperosislove"),
+        ],
     ]
     try:
         await message.reply_text(
-            START_MESSAGE,
+            "Welcome to LinkGuard Bot!\n\n"
+            "This bot helps you keep your group clean by removing links and mentions.\n"
+            "Click the buttons below to get started.",
             reply_markup=InlineKeyboardMarkup(buttons),
-            parse_mode="Markdown",  # Handles Markdown
+            parse_mode="Markdown",
         )
     except ValueError:
         await message.reply_text(
-            START_MESSAGE,
+            "Welcome to LinkGuard Bot!\n\n"
+            "This bot helps you keep your group clean by removing links and mentions.\n"
+            "Click the buttons below to get started.",
             reply_markup=InlineKeyboardMarkup(buttons),
         )
 
@@ -87,22 +99,14 @@ async def help(client, callback_query):
 # Callback query handler for developer info
 @app.on_callback_query(filters.regex("developer_info"))
 async def developer_info(client, callback_query):
-    developer_message = """
-    👨‍💻 **Developer Info:**
-
-    **Name**: Hyperosis Love  
-    **Username**: [@hyperosislove](https://t.me/hyperosislove)  
-    **About**: A passionate developer focused on automation and security.  
-    **Contact**: Reach out to me anytime via [Telegram](https://t.me/hyperosislove).  
-    """
     try:
         await callback_query.message.edit_text(
-            developer_message,
+            DEVELOPER_INFO_MESSAGE,
             parse_mode="Markdown",
         )
     except ValueError:
         await callback_query.message.edit_text(
-            developer_message,
+            DEVELOPER_INFO_MESSAGE,
         )
 
 # Group message handler
@@ -117,37 +121,6 @@ async def check_message(client, message):
         )
         await asyncio.sleep(10)  # Wait 10 seconds
         await warning_message.delete()  # Delete warning message
-
-# New section in /start message: Developer Info with separate button
-@app.on_message(filters.private & filters.command("start"))
-async def new_menu(client, message):
-    buttons = [
-        [
-            InlineKeyboardButton("➕ Add me to your group", url="https://t.me/your_bot_username?startgroup=true"),
-            InlineKeyboardButton("ℹ️ How to Use", callback_data="help"),
-        ],
-        [
-            InlineKeyboardButton("📞 Contact Developer", url="https://t.me/hyperosislove"),
-        ],
-        [
-            InlineKeyboardButton("👨‍💻 Developer Info", callback_data="developer_info"),
-        ]
-    ]
-    try:
-        await message.reply_text(
-            "Welcome to LinkGuard Bot!\n\n"
-            "This bot helps you keep your group clean by removing links and mentions.\n"
-            "Click the buttons below to get started.",
-            reply_markup=InlineKeyboardMarkup(buttons),
-            parse_mode="Markdown",  # Handles Markdown
-        )
-    except ValueError:
-        await message.reply_text(
-            "Welcome to LinkGuard Bot!\n\n"
-            "This bot helps you keep your group clean by removing links and mentions.\n"
-            "Click the buttons below to get started.",
-            reply_markup=InlineKeyboardMarkup(buttons),
-        )
 
 # Run the bot
 if __name__ == "__main__":
