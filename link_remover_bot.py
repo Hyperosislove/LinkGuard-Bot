@@ -12,25 +12,39 @@ BOT_TOKEN = os.getenv("BOT_TOKEN")
 # Initialize the bot
 app = Client("link_remover_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 
-# Professional messages
+# Messages
 START_MESSAGE = """
 👋 **Welcome to LinkGuard Bot!**
 
-I help keep your group clean and safe by:
-- Removing **all links** and **@ mentions**.
-- Sending polite warnings to violators.
-- Preventing spam and scams.
+I am designed to keep your group safe by:
+- Removing **all links** and **mentions**.
+- Sending polite warnings to rule violators.
+- Ensuring a clean and spam-free environment.
 
 **➤ Add me to your group and make me an admin to activate my features.**
 
-**Developed by [@hyperosislove](https://t.me/hyperosislove)**  
-Thank you for choosing professional group management. 🚀
+Thank you for choosing a professional group management solution! 🚀
 """
 
-WARNING_TEMPLATE = """
-🚫 **Warning!**  
-Dear {username}, posting links or mentions is not allowed in this group.  
-Please follow the rules to avoid further actions. Thank you!  
+ABOUT_DEVELOPER = """
+👨‍💻 **About the Developer**  
+This bot is professionally developed by [@hyperosislove](https://t.me/hyperosislove).
+
+For inquiries, support, or suggestions, feel free to contact the developer.  
+Thank you for trusting our services! 🌟
+"""
+
+HELP_MESSAGE = """
+📖 **How to Use LinkGuard Bot**  
+1. **Add the bot to your group.**
+2. **Give the bot admin rights**, including:
+   - Message deletion permissions.
+   - Ability to restrict users.
+3. Once added, the bot will:
+   - Automatically delete links or mentions.
+   - Warn users about rules.
+
+**Pro Tip**: Use this bot to protect your group from spam, scams, and unsolicited advertisements.
 """
 
 # Function to check for links or mentions
@@ -41,44 +55,51 @@ def contains_prohibited_content(message_text):
 @app.on_message(filters.private & filters.command("start"))
 async def start(client, message):
     buttons = [
-        [
-            InlineKeyboardButton("➕ Add me to your group", url="https://t.me/your_bot_username?startgroup=true"),
-            InlineKeyboardButton("ℹ️ Help", callback_data="help"),
-        ],
-        [InlineKeyboardButton("📞 Contact Developer", url="https://t.me/hyperosislove")],
+        [InlineKeyboardButton("➕ Add to Group", url="https://t.me/your_bot_username?startgroup=true")],
+        [InlineKeyboardButton("ℹ️ Help", callback_data="help")],
+        [InlineKeyboardButton("👨‍💻 About Developer", callback_data="about_developer")],
     ]
-    try:
-        await message.reply_text(
-            START_MESSAGE,
-            reply_markup=InlineKeyboardMarkup(buttons),
-            parse_mode="Markdown",  # Dynamic parse_mode handling
-        )
-    except ValueError:
-        await message.reply_text(
-            START_MESSAGE,
-            reply_markup=InlineKeyboardMarkup(buttons),
-        )
+    await message.reply_text(
+        START_MESSAGE,
+        reply_markup=InlineKeyboardMarkup(buttons),
+        parse_mode="Markdown",
+    )
 
-# Callback query handler
+# Callback query handler for Help
 @app.on_callback_query(filters.regex("help"))
 async def help(client, callback_query):
-    try:
-        await callback_query.message.edit_text(
-            "**How to use me:**\n\n"
-            "- Add me to your group.\n"
-            "- Give me admin rights (with message delete permission).\n"
-            "- I will automatically remove all links and mentions from your group.\n\n"
-            "For further assistance, contact the developer.",
-            parse_mode="Markdown",
-        )
-    except ValueError:
-        await callback_query.message.edit_text(
-            "**How to use me:**\n\n"
-            "- Add me to your group.\n"
-            "- Give me admin rights (with message delete permission).\n"
-            "- I will automatically remove all links and mentions from your group.\n\n"
-            "For further assistance, contact the developer.",
-        )
+    await callback_query.message.edit_text(
+        HELP_MESSAGE,
+        reply_markup=InlineKeyboardMarkup([
+            [InlineKeyboardButton("🔙 Back to Main Menu", callback_data="main_menu")],
+        ]),
+        parse_mode="Markdown",
+    )
+
+# Callback query handler for About Developer
+@app.on_callback_query(filters.regex("about_developer"))
+async def about_developer(client, callback_query):
+    await callback_query.message.edit_text(
+        ABOUT_DEVELOPER,
+        reply_markup=InlineKeyboardMarkup([
+            [InlineKeyboardButton("🔙 Back to Main Menu", callback_data="main_menu")],
+        ]),
+        parse_mode="Markdown",
+    )
+
+# Callback query handler to return to Main Menu
+@app.on_callback_query(filters.regex("main_menu"))
+async def main_menu(client, callback_query):
+    buttons = [
+        [InlineKeyboardButton("➕ Add to Group", url="https://t.me/your_bot_username?startgroup=true")],
+        [InlineKeyboardButton("ℹ️ Help", callback_data="help")],
+        [InlineKeyboardButton("👨‍💻 About Developer", callback_data="about_developer")],
+    ]
+    await callback_query.message.edit_text(
+        START_MESSAGE,
+        reply_markup=InlineKeyboardMarkup(buttons),
+        parse_mode="Markdown",
+    )
 
 # Group message handler
 @app.on_message(filters.group & ~filters.service)
@@ -87,7 +108,9 @@ async def check_message(client, message):
         await message.delete()  # Delete prohibited message
         user = message.from_user
         warning_message = await message.reply_text(
-            WARNING_TEMPLATE.format(username=f"@{user.username}" if user.username else user.first_name),
+            f"🚫 **Warning!**\n\n"
+            f"Dear {f'@{user.username}' if user.username else user.first_name}, posting links or mentions is not allowed here. "
+            f"Please adhere to the group rules to avoid further actions.",
             parse_mode="Markdown",
         )
         await asyncio.sleep(10)  # Wait 10 seconds
