@@ -1,10 +1,8 @@
 import os
 import asyncio
 import re
-import time
 from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
-from pyrogram.errors import FloodWait
 
 # Fetch environment variables
 API_ID = int(os.getenv("API_ID"))
@@ -16,17 +14,37 @@ app = Client("link_remover_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT
 
 # Professional messages
 START_MESSAGE = """
-👋 **Welcome to LinkGuard Bot!**
+🌟 **Welcome to LinkGuard Bot!** 🌟
 
-I help keep your group clean and safe by:
-- Removing **all links** and **@ mentions**.
-- Sending polite warnings to violators.
-- Preventing spam and scams.
+I help keep your group clean and spam-free by:
+✨ Removing **all links** and **@ mentions**.
+✨ Sending **polite warnings** to violators.
+✨ Preventing **spam and scams**.
 
-**➤ Add me to your group and make me an admin to activate my features.**
+🔒 **Add me to your group and make me an admin** to activate all features.
 
-**Developed by [@hyperosislove](https://t.me/hyperosislove)**  
-Thank you for choosing professional group management. 🚀
+Let's make your group a better place! 🚀
+"""
+
+HELP_MESSAGE = """
+📖 **How to use LinkGuard Bot:**
+
+1. **Add me to your group**.
+2. **Make me an admin** (with delete messages permission).
+3. I will:
+   - Automatically **remove all links** and **mentions**.
+   - Send **warnings** to violators.
+
+For further assistance, contact the developer.
+"""
+
+DEVELOPER_INFO_MESSAGE = """
+👨‍💻 **Developer Info:**
+
+**Name**: Hyperosis Love  
+**Username**: [@hyperosislove](https://t.me/hyperosislove)  
+**About**: A passionate developer focused on automation and security.  
+**Contact**: Reach out to me anytime via [Telegram](https://t.me/hyperosislove).  
 """
 
 WARNING_TEMPLATE = """
@@ -45,49 +63,49 @@ async def start(client, message):
     buttons = [
         [
             InlineKeyboardButton("➕ Add Me to Your Group", url="https://t.me/your_bot_username?startgroup=true"),
-            InlineKeyboardButton("ℹ️ Help", callback_data="help"),
         ],
-        [InlineKeyboardButton("📞 Contact Developer", url="https://t.me/hyperosislove")],
+        [
+            InlineKeyboardButton("ℹ️ How to Use", callback_data="help"),
+            InlineKeyboardButton("📞 Contact Developer", callback_data="developer_info"),
+        ],
     ]
+    
     try:
         await message.reply_text(
             START_MESSAGE,
             reply_markup=InlineKeyboardMarkup(buttons),
-            parse_mode="Markdown",  # Dynamic parse_mode handling
+            parse_mode="MarkdownV2",  # Using MarkdownV2 for better formatting
         )
-    except FloodWait as e:
-        print(f"FloodWait error, waiting for {e.x} seconds...")
-        time.sleep(e.x)  # Wait for the specified time
-        await start(client, message)  # Retry sending the message after the wait
     except ValueError:
         await message.reply_text(
             START_MESSAGE,
             reply_markup=InlineKeyboardMarkup(buttons),
         )
 
-# Callback query handler
+# Callback query handler for help
 @app.on_callback_query(filters.regex("help"))
 async def help(client, callback_query):
     try:
         await callback_query.message.edit_text(
-            "**How to use me:**\n\n"
-            "- Add me to your group.\n"
-            "- Give me admin rights (with message delete permission).\n"
-            "- I will automatically remove all links and mentions from your group.\n\n"
-            "For further assistance, contact the developer.",
-            parse_mode="Markdown",
+            HELP_MESSAGE,
+            parse_mode="MarkdownV2",
         )
-    except FloodWait as e:
-        print(f"FloodWait error, waiting for {e.x} seconds...")
-        time.sleep(e.x)  # Wait for the specified time
-        await help(client, callback_query)  # Retry after the wait
     except ValueError:
         await callback_query.message.edit_text(
-            "**How to use me:**\n\n"
-            "- Add me to your group.\n"
-            "- Give me admin rights (with message delete permission).\n"
-            "- I will automatically remove all links and mentions from your group.\n\n"
-            "For further assistance, contact the developer.",
+            HELP_MESSAGE,
+        )
+
+# Callback query handler for developer info
+@app.on_callback_query(filters.regex("developer_info"))
+async def developer_info(client, callback_query):
+    try:
+        await callback_query.message.edit_text(
+            DEVELOPER_INFO_MESSAGE,
+            parse_mode="MarkdownV2",
+        )
+    except ValueError:
+        await callback_query.message.edit_text(
+            DEVELOPER_INFO_MESSAGE,
         )
 
 # Group message handler
@@ -98,7 +116,7 @@ async def check_message(client, message):
         user = message.from_user
         warning_message = await message.reply_text(
             WARNING_TEMPLATE.format(username=f"@{user.username}" if user.username else user.first_name),
-            parse_mode="Markdown",
+            parse_mode="MarkdownV2",
         )
         await asyncio.sleep(10)  # Wait 10 seconds
         await warning_message.delete()  # Delete warning message
