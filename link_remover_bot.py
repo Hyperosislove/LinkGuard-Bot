@@ -12,8 +12,13 @@ BOT_TOKEN = os.getenv("BOT_TOKEN")
 # Initialize the bot
 app = Client("link_remover_bot", api_id=API_ID, api_hash=API_HASH, bot_token=BOT_TOKEN)
 
+# Escape MarkdownV2 characters
+def escape_markdown_v2(text):
+    escape_chars = r"_|*[]()~`>#+-=|{}.!"
+    return "".join("\\" + char if char in escape_chars else char for char in text)
+
 # Messages
-START_MESSAGE = """
+START_MESSAGE = escape_markdown_v2("""
 👋 **Welcome to LinkGuard Bot!**
 
 I am designed to keep your group safe by:
@@ -24,17 +29,17 @@ I am designed to keep your group safe by:
 **➤ Add me to your group and make me an admin to activate my features.**
 
 Thank you for choosing a professional group management solution! 🚀
-"""
+""")
 
-ABOUT_DEVELOPER = """
+ABOUT_DEVELOPER = escape_markdown_v2("""
 👨‍💻 **About the Developer**  
 This bot is professionally developed by [@hyperosislove](https://t.me/hyperosislove).
 
 For inquiries, support, or suggestions, feel free to contact the developer.  
 Thank you for trusting our services! 🌟
-"""
+""")
 
-HELP_MESSAGE = """
+HELP_MESSAGE = escape_markdown_v2("""
 📖 **How to Use LinkGuard Bot**  
 1. **Add the bot to your group.**
 2. **Give the bot admin rights**, including:
@@ -45,7 +50,7 @@ HELP_MESSAGE = """
    - Warn users about rules.
 
 **Pro Tip**: Use this bot to protect your group from spam, scams, and unsolicited advertisements.
-"""
+""")
 
 # Function to check for links or mentions
 def contains_prohibited_content(message_text):
@@ -62,7 +67,7 @@ async def start(client, message):
     await message.reply_text(
         START_MESSAGE,
         reply_markup=InlineKeyboardMarkup(buttons),
-        parse_mode="Markdown",
+        parse_mode="MarkdownV2",
     )
 
 # Callback query handler for Help
@@ -73,7 +78,7 @@ async def help(client, callback_query):
         reply_markup=InlineKeyboardMarkup([
             [InlineKeyboardButton("🔙 Back to Main Menu", callback_data="main_menu")],
         ]),
-        parse_mode="Markdown",
+        parse_mode="MarkdownV2",
     )
 
 # Callback query handler for About Developer
@@ -84,7 +89,7 @@ async def about_developer(client, callback_query):
         reply_markup=InlineKeyboardMarkup([
             [InlineKeyboardButton("🔙 Back to Main Menu", callback_data="main_menu")],
         ]),
-        parse_mode="Markdown",
+        parse_mode="MarkdownV2",
     )
 
 # Callback query handler to return to Main Menu
@@ -98,7 +103,7 @@ async def main_menu(client, callback_query):
     await callback_query.message.edit_text(
         START_MESSAGE,
         reply_markup=InlineKeyboardMarkup(buttons),
-        parse_mode="Markdown",
+        parse_mode="MarkdownV2",
     )
 
 # Group message handler
@@ -108,10 +113,12 @@ async def check_message(client, message):
         await message.delete()  # Delete prohibited message
         user = message.from_user
         warning_message = await message.reply_text(
-            f"🚫 **Warning!**\n\n"
-            f"Dear {f'@{user.username}' if user.username else user.first_name}, posting links or mentions is not allowed here. "
-            f"Please adhere to the group rules to avoid further actions.",
-            parse_mode="Markdown",
+            escape_markdown_v2(
+                f"🚫 **Warning!**\n\n"
+                f"Dear {f'@{user.username}' if user.username else user.first_name}, posting links or mentions is not allowed here. "
+                f"Please adhere to the group rules to avoid further actions."
+            ),
+            parse_mode="MarkdownV2",
         )
         await asyncio.sleep(10)  # Wait 10 seconds
         await warning_message.delete()  # Delete warning message
