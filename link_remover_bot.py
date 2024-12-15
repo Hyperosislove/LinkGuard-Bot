@@ -1,8 +1,10 @@
 import os
 import asyncio
 import re
+import time
 from pyrogram import Client, filters
 from pyrogram.types import InlineKeyboardMarkup, InlineKeyboardButton
+from pyrogram.errors import FloodWait
 
 # Fetch environment variables
 API_ID = int(os.getenv("API_ID"))
@@ -53,6 +55,10 @@ async def start(client, message):
             reply_markup=InlineKeyboardMarkup(buttons),
             parse_mode="Markdown",  # Dynamic parse_mode handling
         )
+    except FloodWait as e:
+        print(f"FloodWait error, waiting for {e.x} seconds...")
+        time.sleep(e.x)  # Wait for the specified time
+        await start(client, message)  # Retry sending the message after the wait
     except ValueError:
         await message.reply_text(
             START_MESSAGE,
@@ -71,6 +77,10 @@ async def help(client, callback_query):
             "For further assistance, contact the developer.",
             parse_mode="Markdown",
         )
+    except FloodWait as e:
+        print(f"FloodWait error, waiting for {e.x} seconds...")
+        time.sleep(e.x)  # Wait for the specified time
+        await help(client, callback_query)  # Retry after the wait
     except ValueError:
         await callback_query.message.edit_text(
             "**How to use me:**\n\n"
