@@ -56,7 +56,7 @@ async def start(client, message):
     await message.reply_text(
         START_MESSAGE,
         reply_markup=InlineKeyboardMarkup(buttons),
-        parse_mode="markdown"
+        parse_mode="Markdown"  # Fixed capitalization
     )
 
 # Callback query handler (e.g., Help button)
@@ -68,7 +68,7 @@ async def help(client, callback_query):
         "- Give me admin rights (with message delete permission).\n"
         "- I will automatically remove all links and mentions from your group.\n\n"
         "For further assistance, contact the developer.",
-        parse_mode="markdown"
+        parse_mode="Markdown"  # Fixed capitalization
     )
 
 # Group message handler
@@ -79,7 +79,7 @@ async def check_message(client, message):
         user = message.from_user
         warning_message = await message.reply_text(
             WARNING_TEMPLATE.format(username=f"@{user.username}" if user.username else user.first_name),
-            parse_mode="markdown"
+            parse_mode="Markdown"  # Fixed capitalization
         )
         await asyncio.sleep(10)  # Wait 10 seconds
         await warning_message.delete()  # Delete warning message
